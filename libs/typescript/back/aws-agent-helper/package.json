@@ -1,0 +1,40 @@
+{
+  "name": "@elocuency/aws-agent-helper",
+  "description": "Typescript AWS Agent Helper to create Elocuency Agents.",
+  "version": "3.0.0",
+  "entryPoints": [
+    "dist/main.js"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/organizations/GeekeBrains/elocuency"
+  },
+  "keywords": [
+    "ia",
+    "elocuency",
+    "aws",
+    "agent"
+  ],
+  "dependencies": {
+    "@nestjs/cli": "^10.4.9",
+    "tslib": "^2.3.0"
+  },
+  "scripts": {
+    "build:types": "tsc -p tsconfig.lib.json",
+    "build:webpack": "nx build aws-agent-helper",
+    "build:watch": "nodemon --watch src --ext ts,js,json --watch ../core/src --ext ts,js,json --exec \"yarn build && yalc publish\"",
+    "build": "npm run build:types && npm run build:webpack",
+    "prepare": "npm run build"
+  },
+  "type": "commonjs",
+  "main": "dist/main.js",
+  "types": "dist/libs/typescript/back/aws-agent-helper/src/index.d.ts",
+  "private": false,
+  "files": [
+    "dist/**/*"
+  ],
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

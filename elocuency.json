@@ -1,0 +1,13 @@
+{
+  "agents": [
+    {
+      "name": "language-teacher"
+    },
+    {
+      "name": "mistral"
+    },
+    {
+      "name": "llama"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "front",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/front/nextjs/src/",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/next:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "prod",
+      "options": {
+        "// Next make the route relative to workspace nx": "",
+        "outputPath": ".tmp/apps/front/nextjs/"
+      },
+      "configurations": {
+        "dev": {},
+        "prod": {}
+      }
+    },
+    "start": {
+      "executor": "@nx/next:server",
+      "defaultConfiguration": "dev",
+      "options": {
+        "buildTarget": "next:build",
+        "dev": true
+      },
+      "configurations": {
+        "dev": {
+          "buildTarget": "next:build:dev",
+          "dev": true
+        },
+        "prod": {
+          "buildTarget": "next:build:prod",
+          "dev": false
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

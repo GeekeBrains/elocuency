@@ -1,0 +1,106 @@
+{
+  "name": "elo-server",
+  "$schema": "{workspaceRoot}/node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/back/elo-server/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "nx run elo-server:build-transpile:localstack",
+          "autoVersion=$(date +'%y.%m.%d.%H.%M') && sed -i '' \"s/{ELOCUENCY_AUTO_VERSION}/$autoVersion/g\" {projectRoot}/dist/main.js"
+        ],
+        "parallel": false
+      }
+    },
+
+    "build-transpile": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "local",
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "tsConfig": "{projectRoot}/tsconfig.app.json",
+        "webpackConfig": "{projectRoot}/webpack.config.js",
+        "deleteOutputPath": false
+      },
+      "configurations": {
+        "local": {
+          "outputPath": "/apps/back/elo-server/dist",
+          "main": "apps/back/elo-server/src/main.ts"
+        },
+        "localstack": {
+          "outputPath": "/apps/back/elo-server/dist",
+          "main": "apps/back/elo-server/src/mainLambda.ts"
+        },
+        "aws": {
+          "outputPath": "/apps/back/elo-server/dist",
+          "main": "apps/back/elo-server/src/mainLambda.ts"
+        }
+      }
+    },
+    "start": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "local",
+      "configurations": {
+        "local": {
+          "buildTarget": "elo-server:build-transpile:local"
+        }
+      }
+    },
+    "prod-to-cloud": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "apps/devops/aws-command-mode/bff-elo-prod-lambda-deploy.sh"
+        ],
+        "parallel": false
+      }
+    },
+
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/.tmp/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/back/elo-bff/jest.config.ts"
+      }
+    },
+    "find-circular-deps": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["madge --circular --extensions ts apps/back/elo-bff/src"],
+        "parallel": false
+      }
+    },
+    "deps": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "skott --displayMode=webapp --trackThirdPartyDependencies --ignorePattern='*.test.ts'"
+        ],
+        "parallel": false
+      }
+    },
+    "open-api:build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "ECHO 'elo-server must be running in the same machine to works open-api generator:  nx run elo-server:start'"
+          },
+          {
+            "command": "openapi-generator-cli generate -i http://localhost:3000/api-json -g typescript-fetch -o ./apps/back/elo-server/open-api/open-api --additional-properties=useSingleRequestParameter=false"
+          }
+        ],
+        "parallel": false
+      }
+    }
+  }
+}

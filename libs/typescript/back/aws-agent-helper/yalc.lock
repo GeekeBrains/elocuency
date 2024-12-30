@@ -1,0 +1,9 @@
+{
+  "version": "v1",
+  "packages": {
+    "@elocuency/aws-agent-helper": {
+      "signature": "5d82bafeb419157f8548ab8586e44ba9",
+      "file": true
+    }
+  }
+}

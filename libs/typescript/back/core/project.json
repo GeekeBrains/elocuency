@@ -1,0 +1,20 @@
+{
+  "name": "lib-back-core",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "Libs/TypeScript/Back/Core/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/.tmp/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "libs/jest.config.ts"
+      }
+    }
+  }
+}

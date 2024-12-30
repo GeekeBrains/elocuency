@@ -1,0 +1,13 @@
+{
+  "name": "@elo/modules-aws-sdk-v3",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {},
+  "private": true,
+  "engines": {
+    "node": ">=20.0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1691.0"
+  }
+}

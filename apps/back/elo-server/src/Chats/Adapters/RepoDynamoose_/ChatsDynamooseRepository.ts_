@@ -1,0 +1,39 @@
+import { Injectable } from '@nestjs/common';
+
+import { DynamooseRepository } from '@elo-utils';
+import { ChatEntity } from 'elo/back/server/Chats/Model';
+
+@Injectable()
+export class ChatsDynamooseRepository extends DynamooseRepository<ChatEntity> {
+  constructor() {
+    super('chats', new ChatEntity());
+  }
+
+  async insert(entity: any) {
+    this.entity = entity;
+    await this.dynamooseModel.create(this.entity);
+  }
+
+  async read(id: string): Promise<ChatEntity> {
+    console.log(
+      'ºº ~ file: users.repository.ts:28 ~ ChatsRepository ~ read ~ id:',
+      id
+    );
+    let resp = await this.dynamooseModel.get(id);
+    console.log(
+      'ºº ~ file: user.repository.ts:48 ~ ChatsRepository ~ read ~ resp:',
+      id,
+      resp
+    );
+    const user = new ChatEntity(resp as unknown as ChatEntity);
+    return user;
+  }
+
+  async update(entity: Partial<ChatEntity>) {
+    await this.dynamooseModel.update(entity.id, entity);
+  }
+
+  async delete(id: string) {
+    await this.dynamooseModel.delete(id);
+  }
+}

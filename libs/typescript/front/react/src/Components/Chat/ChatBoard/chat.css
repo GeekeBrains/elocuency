@@ -1,0 +1,158 @@
+body {
+  display: flex;
+  /* min-height: 100vh; */
+  flex-direction: column;
+  align-items: center;
+  /* background: url('/src/images/background-1.jpeg'); */
+  /* background-repeat: no-repeat; */
+  /* background-size: cover; */
+  background-color: #ffffff;
+  /* width: 100%;
+    height: 100%; */
+  min-height: 100vh;
+}
+
+.title {
+  font-family: 'Architects Daughter', cursive;
+  font-size: 50px;
+  text-align: center;
+  margin: 15px;
+}
+
+#background {
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  position: absolute;
+}
+
+#board {
+  display: flex;
+  /* min-height: calc(100vh - 16px); */
+  flex-direction: column;
+  /* max-width: 450px; */
+  width: 100%;
+  height: 100%;
+  /* border-style: solid;
+    border-radius: 15px;
+    border-color: #327075; */
+  /* margin: 5px; */
+  z-index: 10;
+}
+
+/* Chat ------------------------*/
+#chatView {
+  height: calc(100vh - 65px) !important;
+  z-index: 1;
+}
+
+.chatMsg,
+.chatMarkdown {
+  max-width: 80%;
+  border-radius: 8px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #94979994;
+  margin: 5px;
+  padding: 10px;
+  margin-left: 24px;
+  align-self: flex-start;
+  background-color: #ffffffc7;
+}
+
+.chatMsgPrize {
+  z-index: 1;
+  width: 250px;
+  align-self: center;
+  border-radius: 100px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #94979994;
+  background-color: #6ecb34;
+  margin: 5px;
+  padding: 5px;
+  margin-left: 24px;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 5px 1px black;
+  color: #f8f8ffd9;
+}
+
+.chatButton {
+  max-width: 80%;
+  border-radius: 25px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #94979994;
+  margin: 5px;
+  padding: 10px;
+  margin-left: 24px;
+  align-self: self-start;
+  background-color: #6ecb35;
+  /* text-decoration: underline; */
+  color: white;
+  padding-right: 15px;
+  padding-left: 15px;
+  cursor: pointer;
+}
+
+.fadeOut {
+  /* visibility: hidden;
+    transition-property: visibility;
+    transition-duration: 4s;
+    transition-delay: 2s;
+    transition-timing-function: ease-out; */
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 1s ease-out, opacity 1s ease-out;
+}
+
+#particles canvas {
+  visibility: visible;
+  opacity: 1;
+  transition: visibility 1s ease-out, opacity 1s ease-out;
+  z-index: 0 !important;
+}
+
+/* Score ----------------------- */
+.score {
+  margin-top: 15px;
+  font-size: x-large;
+  color: white;
+  position: absolute;
+  top: calc(50% - 150px);
+  left: calc(50% - 150px);
+  z-index: 0;
+}
+
+.score .text {
+  position: relative;
+  top: -33px;
+  left: 33px;
+  font-size: 13px;
+  color: white;
+  width: 30px;
+  /* border: 1px solid blue; */
+  text-align: center;
+}
+
+.userButton {
+  min-width: 35px;
+  align-self: center;
+  border-radius: 100px;
+  border-style: solid;
+  border-width: 1 px;
+  border-color: #94979994;
+  background-color: #6ecb34;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 1px 1px 4px 0px black;
+  color: #f8f8ffd9;
+  font-size: 21px;
+  font-weight: bolder;
+  height: 35px;
+}

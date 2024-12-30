@@ -1,0 +1,23 @@
+{
+  "name": "front-capacitor",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/front/capacitor/src",
+  "projectType": "application",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project capacitor --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/vite:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "prod",
+      "options": {
+        "// Next make the route relative to workspace nx": "",
+        "outputPath": "../../../.tmp/apps/front/capacitor/"
+      },
+      "configurations": {
+        "dev": {},
+        "prod": {}
+      }
+    }
+  }
+}

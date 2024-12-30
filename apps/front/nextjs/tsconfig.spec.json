@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../../.tmp/Apps/Back/NextJS/src/out-tsc",
+    "module": "commonjs",
+    "types": ["jest", "node"],
+    "jsx": "react"
+  },
+  "include": [
+    "jest.config.ts",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.test.js",
+    "src/**/*.test.jsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx",
+    "src/**/*.spec.js",
+    "src/**/*.spec.jsx",
+    "src/**/*.d.ts"
+  ]
+}

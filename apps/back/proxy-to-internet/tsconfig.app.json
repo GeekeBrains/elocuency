@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../../.tmp/apps/out-tsc",
+    "module": "commonjs",
+    "types": ["node"],
+    "emitDecoratorMetadata": true,
+    "target": "ES6",
+    // ---
+    "experimentalDecorators": true,
+    "moduleResolution": "node"
+    // "noImplicitAny": true
+    // "target": "es6"
+  },
+  "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"],
+  "include": [
+    "src/**/*.ts",
+    "../../../libs/src/entities/field.decorator.ts",
+    "src/app/EnvDef.ts"
+  ]
+}

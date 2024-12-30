@@ -1,0 +1,19 @@
+/* Login --------------------*/
+.OtherLogins {
+  margin-top: 20px;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.OtherLogin {
+  border: 1px solid silver;
+  border-radius: 5px;
+  padding: 7px;
+  display: flex;
+  align-content: center;
+}
+
+.OtherLogins img {
+  margin-right: 10px;
+}

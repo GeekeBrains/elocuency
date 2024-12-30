@@ -1,0 +1,106 @@
+import { Injectable } from '@nestjs/common';
+
+import { DynamooseRepository } from '@elo-utils';
+import { ChatMsgEntity, ChatMsgPkType } from 'elo/back/server/Chats/Model';
+
+@Injectable()
+export class ChatsMsgsDynamooseRepository extends DynamooseRepository<ChatMsgEntity> {
+  constructor() {
+    super('chats-msgs', new ChatMsgEntity());
+  }
+
+  async insert(entity: any) {
+    console.log(
+      'ºº ~ file: chats-msgs.repository.ts:13 ~ ChatsMsgsRepository ~ insert ~ entity:',
+      entity
+    );
+
+    this.entity = entity;
+    try {
+      await this.dynamooseModel.create(this.entity);
+    } catch (e) {
+      console.error('ChatsMsgsRepository.insert:', this.entity, e);
+    }
+  }
+
+  async getAllByChatId(params: {
+    chatId: string;
+    limit?: number;
+  }): Promise<ChatMsgEntity[]> {
+    console.log(
+      'ºº ~ file: chats-msgs.repository.ts:30 ~ ChatsMsgsRepository ~ params:',
+      params
+    );
+
+    const resp = await this.dynamooseModel
+      .query('chatId')
+      .eq(params.chatId)
+      .limit(params.limit ?? 0)
+      .sort('descending')
+      .exec();
+
+    const finalResp = resp.reverse() as unknown as ChatMsgEntity[];
+    console.log(
+      'ºº ~ file: chats-msgs.repository.ts:41 ~ ChatsMsgsRepository ~ resp:',
+      finalResp,
+      resp
+    );
+
+    return finalResp;
+  }
+
+  async getByIdAndSequenceNo({
+    chatId,
+    utc,
+  }: ChatMsgPkType): Promise<ChatMsgEntity> {
+    let resp =
+      (await this.dynamooseModel.get({
+        chatId,
+        utc,
+      })) ?? [];
+    const user = new ChatMsgEntity(resp as unknown as ChatMsgEntity);
+    return user;
+  }
+
+  async getById(params: {
+    chatId: string;
+    limit?: number;
+  }): Promise<ChatMsgEntity[]> {
+    console.log(
+      'ºº ~ file: chats-msgs.repository.ts:59 ~ ChatsMsgsRepository ~ chatId:',
+      params
+    );
+
+    try {
+      let resp = await this.dynamooseModel
+        .query()
+        .where('chatId')
+        .eq(params.chatId)
+        .sort('descending')
+        .limit(params.limit)
+        // .sort(params.orderBy ?? 'ascending')
+        .exec();
+      console.log(
+        'ºº ~ file: chats-msgs.repository.ts:65 ~ ChatsMsgsRepository ~ resp:',
+        resp
+      );
+
+      if (!resp || resp.length === 0) {
+        return [];
+      }
+
+      return resp.reverse() as unknown as ChatMsgEntity[];
+    } catch (e) {
+      console.error('ERROR: ChatsMsgsRepository.getByIdLast:', params, e);
+      return [];
+    }
+  }
+
+  async update(entity: Partial<ChatMsgEntity>) {
+    await this.dynamooseModel.update(entity);
+  }
+
+  async delete(id: string) {
+    await this.dynamooseModel.delete(id);
+  }
+}

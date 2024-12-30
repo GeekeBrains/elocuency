@@ -1,0 +1,53 @@
+{
+  "name": "system",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/commands/install/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "start": {
+      "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "commands": [
+          {
+            "command": "cd $ELOCUENCY_PATH/dev-ops/docker && docker compose up -d"
+          },
+          { "command": "nx run system:install" },
+          { "command": "nx run front:start:dev" }
+        ],
+        "parallel": false
+      }
+    },
+    "install": {
+      "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "commands": [
+          {
+            "command": ". $ELOCUENCY_PATH/apps/back/elo-server/dev-ops/aws/shell/install.sh --build=false"
+          },
+          {
+            "command": ". $ELOCUENCY_PATH/apps/back/agents/language-teacher/dev-ops/aws/shell/install.sh  --build=false"
+          }
+        ],
+        "parallel": true
+      }
+    },
+    "check": {
+      "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "commands": [
+          {
+            "command": "nx reset"
+          },
+          {
+            "command": "nx show projects"
+          }
+        ],
+        "parallel": false
+      }
+    }
+  }
+}

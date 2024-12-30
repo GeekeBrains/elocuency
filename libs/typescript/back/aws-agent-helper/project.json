@@ -1,0 +1,80 @@
+{
+  "name": "aws-agent-helper",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/typescript/back/aws-agent-helper/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "commands": [
+          {
+            "command": "tsc -p libs/typescript/back/aws-agent-helper/tsconfig.lib.json"
+          }
+          // {
+          //   "command": "nx run aws-agent-helper:build-webpack"
+          // }
+        ],
+        "parallel": false
+      }
+    },
+    "build:watch": {
+      "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "command": "nodemon --watch libs/typescript/back/aws-agent-helper/src --ext ts,js,json --watch libs/typescript/back/core/src --ext ts,js,json --exec \"cd libs/typescript/back/aws-agent-helper && yarn build && yalc publish\""
+      }
+    },
+    "_build-tsc": {
+      "executor": "@nrwl/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "../.tmp/libs/back/aws-agent-helper",
+        "main": "libs/typescript/back/aws-agent-helper/src/index.ts",
+        "tsConfig": "libs/typescript/back/aws-agent-helper/tsconfig.lib.json",
+        "externalDependencies": "all",
+        "webpackConfig": "libs/typescript/back/aws-agent-helper/webpack.config.js"
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "inspect": false,
+          "fileReplacements": [],
+          "sourceMap": false
+        }
+      }
+    },
+    "_build-rollup": {
+      "executor": "nx:run-commands",
+      "outputs": ["dist/"],
+      "options": {
+        "command": "rollup -c",
+        "cwd": "Libs/TypeScript/Back/AwsAgentHelper",
+        "parallel": false
+      }
+    },
+    "_watch-rollup": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "rollup -c -w",
+        "cwd": "Libs/TypeScript/Back/AwsAgentHelper",
+        "parallel": false
+      }
+    },
+
+    "build-webpack": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "libs/typescript/back/aws-agent-helper/dist/",
+        "main": "libs/typescript/back/aws-agent-helper/src/index.ts",
+        "tsConfig": "libs/typescript/back/aws-agent-helper/tsconfig.lib.json",
+        "webpackConfig": "libs/typescript/back/aws-agent-helper/webpack.config.js"
+      }
+    }
+  }
+}

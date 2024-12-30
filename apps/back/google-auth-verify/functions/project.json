@@ -1,0 +1,8 @@
+{
+  "name": "google-auth-verify",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/back/google-auth-verify/functions/src",
+  "targets": {},
+  "tags": []
+}

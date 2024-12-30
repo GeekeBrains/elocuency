@@ -1,0 +1,31 @@
+{
+  "name": "elocuency-capacitor",
+  "version": "1.0.0",
+  "license": "MIT",
+  "description": "Elocuency Client",
+  "author": "Jesús Carballo <jesus.angel.carballo.santaclara@gmail.com>",
+  "private": true,
+  "engines": {
+    "node": ">=20.0"
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "build": {
+    "appId": "elocuency.com",
+    "mac": {
+      "target": "dmg"
+    }
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2",
+    "capacitor": "^0.5.6",
+    "react": "^18.3.1",
+    "webpack": "^5.90.3"
+  }
+}

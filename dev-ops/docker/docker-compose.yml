@@ -1,0 +1,50 @@
+services:
+  localstack:
+    container_name: 'localstack'
+    image: localstack/localstack:latest
+    ports:
+      - '127.0.0.1:4566:4566' # LocalStack Gateway
+      - '127.0.0.1:4510-4559:4510-4559' # external services port range
+
+    environment:
+      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
+      - DEBUG=${DEBUG:-0}
+      - LOCALSTACK_INIT_LOG_LEVEL=warn
+      - PERSISTENCE=1 # Only work on Pro version
+      - SERVICES=s3,sqs,lambda,iam,apigateway,cloudwatch,ec2,logs,dynamodb
+      # - LS_LOG=warn #trace
+      - DISABLE_CORS_CHECKS=1 # TODO: Its for elo-server lambda-function-url, search better way to do it
+      - LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT=220
+    # environment:
+    # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
+    # - DEBUG=1
+    # - LAMBDA_DOCKER_FLAGS=-e NODE_OPTIONS=--inspect-brk=0.0.0.0:9229 -p 9229:9229
+    # - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR-}
+    # - DOCKER_HOST=unix:///var/run/docker.sock
+    # - SERVICES=s3,sqs,lambda,iam,apigateway,cloudwatch,ec2,logs,dynamodb
+    # # TODO: Its for elo-server lambda-function-url, search a better way to do it
+    # - DISABLE_CORS_CHECKS=1
+    volumes:
+      - '${ELOCUENCY_PATH}:/mnt/elocuency'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    networks:
+      - localnet
+
+  db:
+    container_name: 'elo-mysql'
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD:-0}'
+      MYSQL_DATABASE: elo-mysql
+      MYSQL_USER: root
+    volumes:
+      - /Users/joshua/docs_locales/code/elocuency-v2/.mysql:/var/lib/mysql
+    ports:
+      - '3306:3306'
+    networks:
+      - localnet
+
+networks:
+  localnet:
+    driver: bridge
