@@ -11,7 +11,7 @@
       "options": {
         "commands": [
           {
-            "command": "(cd $ELOCUENCY_PATH/dev-ops/docker && docker compose -p elocuency up -d)"
+            "command": "(cd $ELOCUENCY_PATH/dev-ops/docker && docker compose --project-name elocuency up -d)"
           }
         ],
         "parallel": false
@@ -23,7 +23,7 @@
       "options": {
         "commands": [
           {
-            "command": "(cd $ELOCUENCY_PATH/dev-ops/docker && docker compose -p elocuency stop elo-localstack)"
+            "command": "(cd $ELOCUENCY_PATH/dev-ops/docker && docker compose --project-name elocuency stop elo-localstack)"
           },
           { "command": "nx run system:docker:up" },
           { "command": "nx run system:install-ephemerals" },

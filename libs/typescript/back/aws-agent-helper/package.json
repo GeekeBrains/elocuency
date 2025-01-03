@@ -23,7 +23,7 @@
   "scripts": {
     "build:types": "tsc -p tsconfig.lib.json",
     "build:webpack": "nx build aws-agent-helper",
-    "build:watch": "nodemon --watch src --ext ts,js,json --watch ../core/src --ext ts,js,json --exec \"yarn build && yalc publish\"",
+    "build:watch": "nodemon --watch src --ext ts,js,json --watch ../core/src --ext ts,js,json --exec \"npm build && yalc publish\"",
     "build": "npm run build:types && npm run build:webpack",
     "prepare": "npm run build"
   },
