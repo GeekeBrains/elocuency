@@ -11,7 +11,7 @@
       "defaultConfiguration": "prod",
       "options": {
         "// Next make the route relative to workspace nx": "",
-        "outputPath": ".tmp/apps/front/nextjs/"
+        "outputPath": "dist/"
       },
       "configurations": {
         "dev": {},

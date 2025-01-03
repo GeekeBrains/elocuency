@@ -1,9 +1,8 @@
 # Create and deploy proxy.to-internet lambda
 
 autoVersion=$(date +"%y.%m.%d.%H.%M")
-env="local"
 buildName="proxy-to-internet"
-buildPath=".tmp/apps/$env/back/$buildName"
+buildPath="dist/"
 logFile=$ELOCUENCY_PATH/$buildPath/elo-server-deploy.log
 awsAccountId=""
 eloServerName="elo-server"
@@ -80,7 +79,7 @@ awslocal lambda create-function \
   --runtime nodejs20.x \
   --code S3Bucket="hot-reload",S3Key="$PWD/$buildPath" \
   --architectures arm64 \
-  --role arn:aws:iam::$awsAccountId:role/$buildName-lambda-$env  \
+  --role arn:aws:iam::$awsAccountId:role/$ELOCUENCY_INFRA_PREFIX-$buildName-lambda  \
   --handler main.handler \
   --timeout 120 \
   --memory-size 128 \

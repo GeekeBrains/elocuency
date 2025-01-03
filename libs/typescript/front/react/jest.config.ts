@@ -6,5 +6,5 @@ export default {
     '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@nx/react/babel'] }],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  coverageDirectory: '../../../.tmp/coverage/libs/front/react',
+  coverageDirectory: 'coverage/',
 };

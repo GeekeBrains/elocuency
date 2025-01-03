@@ -24,14 +24,14 @@
       "executor": "nx:run-commands",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "command": "nodemon --watch libs/typescript/back/aws-agent-helper/src --ext ts,js,json --watch libs/typescript/back/core/src --ext ts,js,json --exec \"cd libs/typescript/back/aws-agent-helper && yarn build && yalc publish\""
+        "command": "nodemon --watch libs/typescript/back/aws-agent-helper/src --ext ts,js,json --watch libs/typescript/back/core/src --ext ts,js,json --exec \"cd libs/typescript/back/aws-agent-helper && npm build && yalc publish\""
       }
     },
     "_build-tsc": {
       "executor": "@nrwl/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "../.tmp/libs/back/aws-agent-helper",
+        "outputPath": "dist/",
         "main": "libs/typescript/back/aws-agent-helper/src/index.ts",
         "tsConfig": "libs/typescript/back/aws-agent-helper/tsconfig.lib.json",
         "externalDependencies": "all",

@@ -133,5 +133,5 @@
       }
     }
   ],
-  "cacheDirectory": ".tmp/.nx"
+  "cacheDirectory": ".nx"
 }

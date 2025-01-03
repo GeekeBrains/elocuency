@@ -24,11 +24,11 @@ module.exports = composePlugins(
       //     {
       //       from: path.resolve(
       //         __dirname,
-      //         '../../../../../.tmp/libs/back/aws-agent-helper/**/*.d.ts'
+      //         'dist/libs/back/aws-agent-helper/**/*.d.ts'
       //       ),
       //       to: path.resolve(
       //         __dirname,
-      //         '../../../../../.tmp/libs/back/aws-agent-helper'
+      //         'dist/libs/back/aws-agent-helper'
       //       ),
       //       // flatten: true,
       //     },

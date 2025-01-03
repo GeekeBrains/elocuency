@@ -3,7 +3,7 @@
 
 # awslocal lambda invoke --function-name $ELOCUENCY_INFRA_PREFIXelo-server out.txt && cat out.txt
 
-# ln -s ../../elocuency/node_modules ../../.tmp/agents/language-teacher-agent
+# ln -s ../../elocuency/node_modules ../../dist/agents/language-teacher-agent
 
 # awslocal lambda invoke --function-name $ELOCUENCY_INFRA_PREFIXelo-server elo-server.log && cat elo-server.log
 

@@ -1,14 +1,15 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # main
-/apps/back/agents
-/data
-/knowledge
+#/apps/back/agents/*
+/data/mysql/*
+/knowledge/*
 /backups
-.tmp
 tmp
 dist/
 logs
+.nx/
+/dev-ops/docker/.env
 
 # dependencies
 node_modules

@@ -1,7 +1,7 @@
 {
   "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "../../../.tmp/apps/out-tsc",
+    "outDir": "dist/",
     "types": [
       "node",
       "jest",
@@ -26,7 +26,6 @@
     "src/**/*.jsx",
     "src/**/*.ts",
     "src/**/*.tsx",
-    ".next/types/**/*.ts",
-    "../../../.tmp/apps/front/next/.next/types/**/*.ts"
+    ".next/types/**/*.ts"
   ]
 }

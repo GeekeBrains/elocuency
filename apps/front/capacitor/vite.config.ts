@@ -6,12 +6,12 @@ import { join } from 'path';
 
 export default defineConfig({
   root: __dirname,
-  cacheDir: '../../../.tmp/vite/apps/front/capacitor',
+  cacheDir: 'dist/',
   publicDir: '/src',
   plugins: [react(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
 
   build: {
-    outDir: join(__dirname, '../../../.tmp/apps/front/capacitor'),
+    outDir: join(__dirname, 'dist/'),
     sourcemap: true,
     emptyOutDir: true, // Borra el contenido de la carpeta de salida en cada build
   },
@@ -31,7 +31,7 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     reporters: ['default'],
     coverage: {
-      reportsDirectory: '../../../.tmp/coverage/apps/front/capacitor',
+      reportsDirectory: 'dist/',
       provider: 'v8',
     },
   },

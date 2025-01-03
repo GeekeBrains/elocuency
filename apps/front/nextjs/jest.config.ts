@@ -18,5 +18,5 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  coverageDirectory: '../../../.tmp/coverage/apps/front/apps/back/bff/src/',
+  coverageDirectory: 'coverage/',
 };

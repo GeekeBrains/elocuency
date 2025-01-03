@@ -5,6 +5,16 @@
   "projectType": "application",
   "tags": [],
   "targets": {
+    "install": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          ". {projectRoot}/dev-ops/aws/shell/install.sh --build=false"
+        ],
+        "parallel": false
+      }
+    },
+
     "build": {
       "executor": "nx:run-commands",
       "options": {
@@ -42,6 +52,7 @@
         }
       }
     },
+
     "start": {
       "executor": "@nx/js:node",
       "defaultConfiguration": "local",
@@ -51,6 +62,7 @@
         }
       }
     },
+
     "prod-to-cloud": {
       "executor": "nx:run-commands",
       "options": {
@@ -65,13 +77,15 @@
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"]
     },
+
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/.tmp/coverage/{projectRoot}"],
+      "outputs": ["{projectRoot}/coverage/"],
       "options": {
         "jestConfig": "apps/back/elo-bff/jest.config.ts"
       }
     },
+
     "find-circular-deps": {
       "executor": "nx:run-commands",
       "options": {
@@ -79,6 +93,7 @@
         "parallel": false
       }
     },
+
     "deps": {
       "executor": "nx:run-commands",
       "options": {
@@ -88,6 +103,7 @@
         "parallel": false
       }
     },
+
     "open-api:build": {
       "executor": "nx:run-commands",
       "options": {

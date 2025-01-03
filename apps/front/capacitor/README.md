@@ -9,6 +9,6 @@ We use Electron directly to make desktop apps.
 
 On /capacitor folder
 
-> npm run build # Send build to .tmp/apps/front/capacitor
+> npm run build # Send build to dist/
 > npx cap sync # Sync build to ios and android
 > npx cap open ios # Open XCode to play ios app

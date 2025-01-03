@@ -30,5 +30,5 @@
       "elo/media/*": ["libs/media/*"]
     }
   },
-  "exclude": ["node_modules", "tmp", ".tmp"]
+  "exclude": ["node_modules"]
 }

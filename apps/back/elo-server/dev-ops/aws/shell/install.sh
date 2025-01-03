@@ -1,284 +1,292 @@
-# Create and deploy bff lambda
-
+autoVersion=$(date +"%y.%m.%d.%H.%M")
+awsAccountId=""
 buildName="elo-server"
 projectPath="$ELOCUENCY_PATH/apps/back/elo-server"
-autoVersion=$(date +"%y.%m.%d.%H.%M")
-awsAccountId="123456789012"
-envFile="$ELOCUENCY_PATH/apps/back/elo-server/.env"
-subnet1=""
-subnet2=""
-securityGroup=""
-logFile=$projectPath/logs/elo-server-deploy.log
-nextEnvFile="$ELOCUENCY_PATH/Apps/Front/NextJs/.env"
-build=false
+echo "🚀 elo-server:install $projectPath"
+logFile=$projectPath/logs/install.log
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --build=*)
-      BUILD="${1#*=}"
-      if [[ "$BUILD" != "true" && "$BUILD" != "false" ]]; then
-        echo "Error: --build must be true or false."
-      fi
-      shift 1
-      ;;
-    *)
-      echo "Error: Argumento desconocido: $1"
-      show_help
-      ;;
-  esac
-done
+## Load .env file to vars without echo
+set -a && source $projectPath/.env && set +a
 
 
-echo "Date: $autoVersion" | tee -a > $logFile 
-echo "PATH: $projectPath" | tee -a $logFile
-echo "ENV FILE: $envFile" | tee -a $logFile
-
-## Load .env file to vars
-set -a
-source $envFile
-set +a
-
-## Build
-if [ "$BUILD" = "true" ]; then
-  (cd $ELOCUENCY_PATH && nx run $buildName:build:prod)
-
-  ## Firm version
-  sed -i '' "s/{ELOCUENCY_AUTO_VERSION}/$autoVersion/g" $projectPath/dist/main.js
-
-  ## Zip
-  # (cd $projectPath/ && zip -r $buildName.zip main.js)
-fi
+## Install node_modules
+mkdir -p $projectPath/dist
+(cd $projectPath && npm install --silent --no-progress)
+cp -rf $projectPath/node_modules $projectPath/dist/node_modules
 
 
-## Update lambda
-# awslocal lambda update-function-code \
-#   --function-name $ELOCUENCY_INFRA_PREFIX$buildName \
-#   --zip-file fileb://$projectPath/$name.zip
+## Create dynamodb tables
+echo "dynamodb ${ELOCUENCY_INFRA_PREFIX}topics" | tee -a $logFile
+awslocal dynamodb create-table \
+    --table-name ${ELOCUENCY_INFRA_PREFIX}topics \
+    --attribute-definitions \
+        AttributeName=topicId,AttributeType=S \
+        AttributeName=parentTopicId,AttributeType=S \
+    --key-schema \
+        AttributeName=topicId,KeyType=HASH \
+    --global-secondary-indexes \
+        '[
+            {
+                "IndexName": "parentTopicId",
+                "KeySchema": [
+                    {"AttributeName":"parentTopicId","KeyType":"HASH"}
+                ],
+                "Projection": {
+                    "ProjectionType":"ALL"
+                },
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": 1,
+                    "WriteCapacityUnits": 1
+                }
+            }
+        ]' \
+    --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
+    --tags Key=environment,Value=$ELOCUENCY_INFRA_PREFIX \
+    >> $logFile
 
-## Create SQS queue
-echo "create-role $ELOCUENCY_INFRA_PREFIX$buildName" | tee -a $logFile
-awslocal sqs create-queue \
-  --queue-name $ELOCUENCY_INFRA_PREFIX$buildName \
-  --tags Key=environment,Value=$ELOCUENCY_INFRA_PREFIX \
-  >> $logFile
 
-## Get SQS queue URL
-echo "sqs get-queue-url" | tee -a $logFile
-sqsQueueUrl=$(awslocal sqs get-queue-url \
-  --queue-name $ELOCUENCY_INFRA_PREFIX$buildName \
-  --query 'QueueUrl' \
-  --output text) \
-  >> $logFile
+echo "dynamodb ${ELOCUENCY_INFRA_PREFIX}chats" | tee -a $logFile
+awslocal dynamodb create-table \
+    --table-name ${ELOCUENCY_INFRA_PREFIX}chats \
+    --attribute-definitions \
+        AttributeName=chatId,AttributeType=S \
+    --key-schema \
+        AttributeName=chatId,KeyType=HASH \
+    --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1  \
+    --tags Key=environment,Value=$ELOCUENCY_INFRA_PREFIX \
+    >> $logFile
 
-## Get SQS queue ARN
-echo "sqs get-queue-attributes" | tee -a $logFile
-sqsQueueArn=$(awslocal sqs get-queue-attributes \
-  --queue-url $sqsQueueUrl \
-  --attribute-name QueueArn \
-  --query 'Attributes.QueueArn' \
-  --output text) 
-  >> $logFile
 
-## Create lambda
-echo "create-role $ELOCUENCY_INFRA_PREFIX$buildName" | tee -a $logFile
-awslocal iam create-role \
-  --role-name $ELOCUENCY_INFRA_PREFIX$buildName \
-  --assume-role-policy-document '{
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Principal": {
-          "Service": "lambda.amazonaws.com"
+echo "dynamodb ${ELOCUENCY_INFRA_PREFIX}chats-msgs" | tee -a $logFile
+awslocal dynamodb create-table \
+    --table-name ${ELOCUENCY_INFRA_PREFIX}chats-msgs \
+    --attribute-definitions \
+        AttributeName=chatId,AttributeType=S \
+        AttributeName=utc,AttributeType=S \
+        AttributeName=parentTopicId,AttributeType=S \
+    --key-schema \
+        AttributeName=chatId,KeyType=HASH \
+        AttributeName=utc,KeyType=RANGE \
+    --global-secondary-indexes \
+        '[
+            {
+                "IndexName": "parentTopicId",
+                "KeySchema": [
+                    {"AttributeName":"parentTopicId","KeyType":"HASH"}
+                ],
+                "Projection": {
+                    "ProjectionType":"ALL"
+                },
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": 1,
+                    "WriteCapacityUnits": 1
+                }
+            }
+        ]' \
+    --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
+    --tags Key=environment,Value=$ELOCUENCY_INFRA_PREFIX \
+    >> $logFile
+
+
+echo "dynamodb ${ELOCUENCY_INFRA_PREFIX}chats-users" | tee -a $logFile
+awslocal dynamodb create-table \
+    --table-name ${ELOCUENCY_INFRA_PREFIX}chats-users \
+    --attribute-definitions \
+        AttributeName=chatId,AttributeType=S \
+        AttributeName=userId,AttributeType=S \
+    --key-schema \
+        AttributeName=chatId,KeyType=HASH \
+        AttributeName=userId,KeyType=RANGE \
+    --billing-mode PAY_PER_REQUEST \
+    --global-secondary-indexes \
+        '[
+            {
+                "IndexName": "userId",
+                "KeySchema": [
+                    {"AttributeName":"userId","KeyType":"HASH"}
+                ],
+                "Projection":{
+                    "ProjectionType":"ALL"
+                }
+            }
+        ]' \
+    --tags Key=environment,Value=$ELOCUENCY_INFRA_PREFIX \
+    >> $logFile
+
+
+echo "dynamodb ${ELOCUENCY_INFRA_PREFIX}users" | tee -a $logFile
+awslocal dynamodb create-table \
+    --table-name ${ELOCUENCY_INFRA_PREFIX}users \
+    --attribute-definitions \
+        AttributeName=userId,AttributeType=S \
+        AttributeName=email,AttributeType=S \
+    --key-schema \
+        AttributeName=userId,KeyType=HASH \
+    --global-secondary-indexes \
+        '[
+            {
+                "IndexName": "email",
+                "KeySchema": [
+                    {"AttributeName":"email","KeyType":"HASH"}
+                ],
+                "Projection": {
+                    "ProjectionType":"ALL"
+                },
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": 1,
+                    "WriteCapacityUnits": 1
+                }
+            }
+        ]' \
+    --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
+    --tags Key=environment,Value=$ELOCUENCY_INFRA_PREFIX \
+    >> $logFile
+
+
+echo "Adding user to ${ELOCUENCY_INFRA_PREFIX}users" | tee -a $logFile
+awslocal dynamodb put-item \
+    --table-name ${ELOCUENCY_INFRA_PREFIX}users \
+    --item \
+        '{
+            "userId": {
+                "S": "bc7c7849-162e-4f1b-a912-4ea890c8063c"
+            },
+            "avatarUrl": {
+                "S": "photo"
+            },
+            "createDate": {
+                "S": "2024-05-14T08:12:13.545Z"
+            },
+            "currentChatId": {
+                "S": "9e016bfa-6ab4-406f-bbf7-5aa70707732d"
+            },
+            "currentGameId": {
+                "S": "589dd5de-c05f-49b5-8ef7-6971688523ab"
+            },
+            "email": {
+                "S": "jesus.angel.carballo.santaclara@gmail.com"
+            },
+            "externalLoginProviderType": {
+                "S": "google"
+            },
+            "flowName": {
+                "S": ""
+            },
+            "level": {
+                "N": "20"
+            },
+            "name": {
+                "S": "Jesus Carballo"
+            },
+            "nativeLangId": {
+                "S": "es"
+            },
+            "password": {
+                "S": ""
+            },
+            "pushSubscriptionRaw": {
+                "S": "{\n          \"endpoint\": \"https://fcm.googleapis.com/fcm/send/dBIpBW2M8BA:APA91bGHGFgRkB6_YvNuseZP-akzicWuZFJZIk4MqISoKnJ0MIdz6K8pmlh1_Df61MqSMi4utJkuXz9fOU7kuxqZCJ5ysBzGSohq9KfhWocoy6jBSmNSPdoSeIXQNQiAZKuMqkdinRzJ\",\n          \"keys\": {\n            \"p256dh\": \"BD-spGKfP6b-G38LXCpgbdvh-pn_clk3Aynog33VmBL13O7iepAOlxShaM_eRZrl3O2FwykieXr2E5M9pHTSi3w\",\n            \"auth\": \"CSIF1AROpaC0x0EbEyk2JQ\"\n          }\n        }"
+            },
+            "sessionToken": {
+                "S": ""
+            },
+            "successWordsSpeakingGame": {
+                "N": "0"
+            },
+            "successWordsWritingGame": {
+                "N": "0"
+            },
+            "targetLangId": {
+                "S": "en"
+            },
+            "totalWordsGame": {
+                "N": "0"
+            }
+        }' \
+    --return-consumed-capacity TOTAL \
+    >> $logFile
+
+echo "Adding user to ${ELOCUENCY_INFRA_PREFIX}users" | tee -a $logFile
+awslocal dynamodb put-item \
+    --table-name ${ELOCUENCY_INFRA_PREFIX}users \
+    --item \
+        '{
+        "userId": {
+            "S": "4409543d-4306-4c71-a0b2-4912c78451b9"
         },
-        "Action": "sts:AssumeRole"
-      },
-      {
-        "StatementId": "FunctionURLAllowPublicAccess",
-        "Effect": "Allow",
-        "Principal": "*",
-        "Action": "lambda:InvokeFunctionUrl",
-        "Resource": "arn:aws:lambda:'$ELOCUENCY_INFRA_REGION':'$awsAccountId':function:'$ELOCUENCY_INFRA_PREFIX$buildName'",
-        "Condition": {
-          "StringEquals": {
-            "lambda:FunctionUrlAuthType": "NONE"
-          }
+        "email": {
+            "S": "paquito@paquito.com"
+        },
+        "level": {
+            "N": "0"
+        },
+        "name": {
+            "S": "Paco"
+        },
+        "nativeLangId": {
+            "S": "es"
+        },
+        "password": {
+            "S": "$2a$10$pgIt9L3ku/Qilbmx5.ulNuTFUIq3JQTgerV0ImVvHssb4FWORi12i"
+        },
+        "pushSubscriptionRaw": {
+            "S": "{\n          \"endpoint\": \"https://updates.push.services.mozilla.com/wpush/v2/gAAAAABnJkujE3O-HhcbhEukdf-RaDWQDULqNLkU_7aSkmrvMiAZTPXTeSWylUO_ehlFeBMUjiNS1401tBzvM3ZBEPwAYEowhe9hFUxsnt2kMpblrAFn-ie6H7HZmvvWh-usY0-88-kQCjM-y9KdmmnJSIdYQbvMMWj_0iQAq39UwK_xSmwosZg\",\n          \"keys\": {\n            \"p256dh\": \"BI3WClMAGFdDU3YD4w__9YfjQn4Fx5OdE2xO6oWaqvQn4agXxzFLcUV9te_BxKoaXDNsXAfBIM7hV8BVy5RsDLo\",\n            \"auth\": \"UTE1ICkoj2CbIV07lH7UWw\"\n          }\n        }"
+        },
+        "successWordsSpeakingGame": {
+            "N": "0"
+        },
+        "successWordsWritingGame": {
+            "N": "0"
+        },
+        "targetLangId": {
+            "S": "en"
+        },
+        "totalWordsGame": {
+            "N": "0"
         }
-      }
-    ]
-  }' \
-  >> $logFile
-
-echo "iam put-role-policy" | tee -a $logFile
-awslocal iam put-role-policy \
-  --role-name $ELOCUENCY_INFRA_PREFIX$buildName \
-  --policy-name CloudWatchLogsPolicy \
-  --policy-document '{
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Action": [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ],
-        "Resource": "arn:aws:logs:*:*:*"
-      }
-    ]
-  }' \
-  >> $logFile
-
-echo "iam put-role-policy" | tee -a $logFile
-awslocal iam put-role-policy \
-  --role-name $ELOCUENCY_INFRA_PREFIX$buildName \
-  --policy-name SQSPolicy \
-  --policy-document '{
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Action": [
-          "sqs:ReceiveMessage",
-          "sqs:DeleteMessage",
-          "sqs:GetQueueAttributes"
-        ],
-        "Resource": "'$sqsQueueArn'"
-      }
-    ]
-  }' \
-  >> $logFile
-
-echo "iam attach-role-policy" | tee -a $logFile
-awslocal iam attach-role-policy \
-  --role-name $ELOCUENCY_INFRA_PREFIX$buildName \
-  --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole \
-  >> $logFile
-
-echo "iam attach-role-policy" | tee -a $logFile
-awslocal iam attach-role-policy \
-  --role-name $ELOCUENCY_INFRA_PREFIX$buildName \
-  --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole \
-  >> $logFile
-
-echo "logs create-log-group" | tee -a $logFile
-awslocal logs create-log-group \
-  --log-group-name /aws/lambda/$ELOCUENCY_INFRA_PREFIX$buildName \
-  >> $logFile
-
-echo "logs create-log-stream" | tee -a $logFile
-awslocal logs create-log-stream \
-  --log-group-name /aws/lambda/$ELOCUENCY_INFRA_PREFIX$buildName \
-  --log-stream-name $ELOCUENCY_INFRA_PREFIX$buildName \
-  >> $logFile
-
-echo "create-function $ELOCUENCY_INFRA_PREFIX$buildName >> $projectPath" | tee -a $logFile
-awslocal lambda create-function \
-  --function-name $ELOCUENCY_INFRA_PREFIX$buildName \
-  --code S3Bucket="hot-reload",S3Key="$projectPath/dist" \
-  --handler main.handler \
-  --runtime nodejs20.x \
-  --architectures arm64 \
-  --role arn:awslocal:iam::$awsAccountId:role/$ELOCUENCY_INFRA_PREFIX$buildName \
-  --timeout 520 \
-  --memory-size 128 \
-  --layers $layerArn \
-  --environment Variables="{ \
-      ELOCUENCY_INFRA=$ELOCUENCY_INFRA, \
-      ELOCUENCY_INFRA_REGION=$ELOCUENCY_INFRA_REGION, \
-      ELOCUENCY_INFRA_PREFIX=$ELOCUENCY_INFRA_PREFIX, \
-      ELOCUENCY_ENV="docker", \
-      OPEN_AI_API_KEY=$OPENAI_API_KEY, \
-      AUTH_JWT_SECRET=$AUTH_JWT_SECRET, \
-      MYSQL_URL=$MYSQL_URL, \
-      FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID, \
-      CORS_ENABLED_URL=$CORS_ENABLED_URL, \
-      APP_PREFIX=$APP_PREFIX, \
-      PUSH_NOTIFICATIONS_PRIVATE_VAPID=$PUSH_NOTIFICATIONS_PRIVATE_VAPID, \
-      PUSH_NOTIFICATIONS_PUBLIC_VAPID=$PUSH_NOTIFICATIONS_PUBLIC_VAPID, \
-    }" \
-  --tags Key=environment,Value=$env \
-  >> $logFile
-  # --vpc-config "SubnetIds=$subnet1,$subnet2,SecurityGroupIds=$securityGroup" \
-  # --zip-file fileb://$projectPath/$name.zip \
-
-## Add SQS trigger to Lambda
-echo "lambda create-event-source-mapping $ELOCUENCY_INFRA_PREFIX$buildName" | tee -a $logFile
-awslocal lambda create-event-source-mapping \
-  --function-name $ELOCUENCY_INFRA_PREFIX$buildName \
-  --batch-size 1 \
-  --event-source-arn $sqsQueueArn \
-  >> $logFile
-
-# Bad messages 
-echo "sqs create-queue $ELOCUENCY_INFRA_PREFIX$buildName-death" | tee -a $logFile
-awslocal sqs create-queue \
-  --queue-name $ELOCUENCY_INFRA_PREFIX$buildName-death \
-  >> $logFile
+    }' \
+    --return-consumed-capacity TOTAL \
+    >> $logFile
 
 
-echo "lambda update-function-configuration $ELOCUENCY_INFRA_PREFIX$buildName" | tee -a $logFile
-awslocal lambda update-function-configuration \
-  --function-name $ELOCUENCY_INFRA_PREFIX$buildName \
-  --dead-letter-config TargetArn=arn:awslocal:sqs:$ELOCUENCY_INFRA_REGION:$awsAccountId:$ELOCUENCY_INFRA_PREFIX$buildName-death \
-  >> $logFile
-
-echo "lambda create-function-url-config" | tee -a $logFile
-# TODO: AllowOrigins en localstack no funciona el *
-awslocal lambda create-function-url-config \
-  --function-name $ELOCUENCY_INFRA_PREFIX$buildName \
-  --auth-type NONE \
-  >> $logFile
-  # --invoke-mode BUFFERED \
-  # --cors '{
-  #     "AllowOrigins": ["http://localhost:4200"],
-  #     "AllowMethods": ["*"],
-  #     "AllowHeaders": ["Content-Type", "Authorization", "accept" , "origin", "cache-control", "pragma", "user-agent"],
-  #     "ExposeHeaders": ["X-Custom-Header"],
-  #     "MaxAge": 3600,
-  #     "AllowCredentials": true
-  # }' \
-
-# Extract FunctionUrl from the log file
-functionUrl=$(perl -nle 'print $1 if /"FunctionUrl": "(.*?)"/' $logFile | sed 's/.$//')
-echo $functionUrl >> $logFile
-echo $nextEnvFile >> $logFile
-
-# Update the NEXT_PUBLIC_BFF_URL in the .env file
-sed -i '' "s|^NEXT_PUBLIC_BFF_URL=.*|NEXT_PUBLIC_BFF_URL=\"$functionUrl\"|" "$nextEnvFile"
-
-echo "Restart Next!!! NEXT_PUBLIC_BFF_URL updated to $functionUrl in $nextEnvFile"
-
-# Allow invoke the proxy lambda
-# awslocal iam put-role-policy \
-#   --role-name bff-elo-prod   \
-#   --policy-name AllowInvokeProxyLambda \
-#   --policy-document '{
-#     "Version": "2012-10-17",
-#     "Statement": [
-#       {
-#         "Effect": "Allow",
-#         "Action": "lambda:InvokeFunction",
-#         "Resource": "arn:aws:lambda:'$ELOCUENCY_INFRA_REGION':'$awsAccountId':function:'$ELOCUENCY_INFRA_PREFIX'-proxy-to-internet",
-#       }
-#     ]
-#   }' \
-#   >> $logFile
-
-# Create VPC endpoint to allow to conect to another lambda outside the VPC of this lambda
-# awslocal ec2 create-vpc-endpoint \
-#   --vpc-id vpc-039b859507876d09c \ # VPC ID 
-#   --service-name com.amazonaws.eu-west-1.lambda \
-#   --vpc-endpoint-type Interface \
-#   --subnet-ids subnet-<subnet-id-1> subnet-<subnet-id-2> \ # Subnet IDs
-#   --security-group-ids sg-<security-group-id> \ # Security Group ID
-#   >> $logFile
-
-# Create VPC endpoint to allow to conect to dynamodb
-# awslocal ec2 create-vpc-endpoint \
-#   --vpc-id vpc-039b859507876d09c \
-#   --service-name com.amazonaws.eu-west-1.dynamodb \
-#   --vpc-endpoint-type Gateway \
-#   --route-table-ids rtb-0123456789abcdef \
-#   >> $logFile
-
+echo "Adding user to ${ELOCUENCY_INFRA_PREFIX}users" | tee -a $logFile
+awslocal dynamodb put-item \
+    --table-name ${ELOCUENCY_INFRA_PREFIX}users \
+    --item \
+        '{
+        "userId": {
+            "S": "A-language-teacher"
+        },
+        "email": {
+            "S": "language-teacher@elocuency.com"
+        },
+        "level": {
+            "N": "0"
+        },
+        "name": {
+            "S": "Elo Language"
+        },
+        "nativeLangId": {
+            "S": "es"
+        },
+        "password": {
+            "S": "$2a$10$pgIt9L3ku/Qilbmx5.ulNuTFUIq3JQTgerV0ImVvHssb4FWORi12i"
+        },
+        "pushSubscriptionRaw": {
+            "S": "{\n          \"endpoint\": \"https://updates.push.services.mozilla.com/wpush/v2/gAAAAABnJkujE3O-HhcbhEukdf-RaDWQDULqNLkU_7aSkmrvMiAZTPXTeSWylUO_ehlFeBMUjiNS1401tBzvM3ZBEPwAYEowhe9hFUxsnt2kMpblrAFn-ie6H7HZmvvWh-usY0-88-kQCjM-y9KdmmnJSIdYQbvMMWj_0iQAq39UwK_xSmwosZg\",\n          \"keys\": {\n            \"p256dh\": \"BI3WClMAGFdDU3YD4w__9YfjQn4Fx5OdE2xO6oWaqvQn4agXxzFLcUV9te_BxKoaXDNsXAfBIM7hV8BVy5RsDLo\",\n            \"auth\": \"UTE1ICkoj2CbIV07lH7UWw\"\n          }\n        }"
+        },
+        "successWordsSpeakingGame": {
+            "N": "0"
+        },
+        "successWordsWritingGame": {
+            "N": "0"
+        },
+        "targetLangId": {
+            "S": "en"
+        },
+        "totalWordsGame": {
+            "N": "0"
+        }
+    }' \
+    --return-consumed-capacity TOTAL \
+    >> $logFile

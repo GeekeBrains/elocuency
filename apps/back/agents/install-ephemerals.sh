@@ -1,0 +1,1 @@
+nx run language-teacher-agent:install-ephemerals

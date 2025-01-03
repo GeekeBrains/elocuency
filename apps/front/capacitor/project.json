@@ -12,7 +12,7 @@
       "defaultConfiguration": "prod",
       "options": {
         "// Next make the route relative to workspace nx": "",
-        "outputPath": "../../../.tmp/apps/front/capacitor/"
+        "outputPath": "dist/"
       },
       "configurations": {
         "dev": {},

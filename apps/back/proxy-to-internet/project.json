@@ -13,7 +13,7 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
-        "outputPath": "/.tmp/apps/local/back/proxy-to-internet",
+        "outputPath": "{projectRoot}/dist/",
         "tsConfig": "{projectRoot}/tsconfig.app.json",
         "webpackConfig": "{projectRoot}/webpack.config.js"
       },
@@ -25,7 +25,7 @@
     },
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/.tmp/coverage/{projectRoot}"],
+      "outputs": ["{projectRoot}/coverage/"],
       "options": {
         "jestConfig": "{projectRoot}/jest.config.ts"
       }

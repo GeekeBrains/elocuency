@@ -5,16 +5,44 @@
   "projectType": "library",
   "tags": [],
   "targets": {
+    "docker:up": {
+      "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "commands": [
+          {
+            "command": "(cd $ELOCUENCY_PATH/dev-ops/docker && docker compose -p elocuency up -d)"
+          }
+        ],
+        "parallel": false
+      }
+    },
     "start": {
       "executor": "nx:run-commands",
       "outputs": ["{options.outputPath}"],
       "options": {
         "commands": [
           {
-            "command": "cd $ELOCUENCY_PATH/dev-ops/docker && docker compose up -d"
+            "command": "(cd $ELOCUENCY_PATH/dev-ops/docker && docker compose -p elocuency stop elo-localstack)"
           },
-          { "command": "nx run system:install" },
+          { "command": "nx run system:docker:up" },
+          { "command": "nx run system:install-ephemerals" },
           { "command": "nx run front:start:dev" }
+        ],
+        "parallel": false
+      }
+    },
+    "install-ephemerals": {
+      "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "commands": [
+          {
+            "command": ". $ELOCUENCY_PATH/apps/back/elo-server/dev-ops/aws/shell/install-ephemerals.sh --build=false"
+          },
+          {
+            "command": ". $ELOCUENCY_PATH/apps/back/agents/install-ephemerals.sh"
+          }
         ],
         "parallel": false
       }
@@ -24,14 +52,13 @@
       "outputs": ["{options.outputPath}"],
       "options": {
         "commands": [
+          { "command": "nx run system:docker:up" },
+          { "command": "nx run elo-server:install" },
           {
-            "command": ". $ELOCUENCY_PATH/apps/back/elo-server/dev-ops/aws/shell/install.sh --build=false"
-          },
-          {
-            "command": ". $ELOCUENCY_PATH/apps/back/agents/language-teacher/dev-ops/aws/shell/install.sh  --build=false"
+            "command": ". $ELOCUENCY_PATH/apps/back/agents/install.sh --build=false"
           }
         ],
-        "parallel": true
+        "parallel": false
       }
     },
     "check": {
