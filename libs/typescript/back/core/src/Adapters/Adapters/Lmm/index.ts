@@ -1,1 +1,1 @@
-export * from './LmmOpenAiAdapter';
+export * from './LlmOpenAiAdapter';
