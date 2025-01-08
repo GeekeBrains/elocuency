@@ -7,7 +7,7 @@
 /backups
 tmp
 dist/
-logs
+logs/
 .nx/
 /dev-ops/docker/.env
 
