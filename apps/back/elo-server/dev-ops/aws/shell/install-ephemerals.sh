@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Create and deploy bff lambda
 
 buildName="elo-server"

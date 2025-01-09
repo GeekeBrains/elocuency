@@ -1,3 +1,5 @@
+#!/bin/bash
+
 autoVersion=$(date +"%y.%m.%d.%H.%M")
 awsAccountId=""
 buildName="elo-server"
