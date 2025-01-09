@@ -34,9 +34,11 @@ echo "PATH: $projectPath" | tee -a $logFile
 echo "ENV FILE: $envFile" | tee -a $logFile
 
 ## Load .env file to vars
-set -a
-source $envFile
-set +a
+if [ -f "$envFile" ]; then
+    set -a && source $envFile && set +a
+else
+    echo "⚠️  .env file not found at $envFile"
+fi
 
 ## Build
 if [ "$BUILD" = "true" ]; then

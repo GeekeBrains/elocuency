@@ -6,7 +6,11 @@ echo "🚀 elo-server:install $projectPath"
 logFile=$projectPath/logs/install.log
 
 ## Load .env file to vars without echo
-set -a && source $projectPath/.env && set +a
+if [ -f "$projectPath/.env" ]; then
+    set -a && source $projectPath/.env && set +a
+else
+    echo "⚠️  .env file not found at $projectPath/.env"
+fi
 
 
 ## Install node_modules
